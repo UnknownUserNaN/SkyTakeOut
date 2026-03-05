@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.sky.mapper.OrderMapper">
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        insert into orders (number, user_id, address_book_id, order_time, checkout_time,
+                            amount, remark, phone, address, user_name, consignee,
+                            cancel_reason, rejection_reason, cancel_time, estimated_delivery_time,
+                            delivery_time, pack_amount, tableware_number)
+        values (#{number}, #{userId}, #{addressBookId}, #{orderTime}, #{checkoutTime},
+                #{amount}, #{remark}, #{phone}, #{address}, #{userName}, #{consignee},
+                #{cancelReason}, #{rejectionReason}, #{cancelTime}, #{estimatedDeliveryTime},
+                #{deliveryTime}, #{packAmount}, #{tablewareNumber})
+    </insert>
+
+    <update id="update" parameterType="com.sky.entity.Orders">
+        update orders
+        <set>
+            <if test="cancelReason != null and cancelReason!='' ">
+                cancel_reason=#{cancelReason},
+            </if>
+            <if test="rejectionReason != null and rejectionReason!='' ">
+                rejection_reason=#{rejectionReason},
+            </if>
+            <if test="cancelTime != null">
+                cancel_time=#{cancelTime},
+            </if>
+            <if test="payStatus != null">
+                pay_status=#{payStatus},
+            </if>
+            <if test="payMethod != null">
+                pay_method=#{payMethod},
+            </if>
+            <if test="checkoutTime != null">
+                checkout_time=#{checkoutTime},
+            </if>
+            <if test="status != null">
+                status = #{status},
+            </if>
+            <if test="deliveryTime != null">
+                delivery_time = #{deliveryTime}
+            </if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <select id="pageQuery" resultType="com.sky.entity.Orders">
+        select * from orders
+        <where>
+            <if test="userId != null">
+                user_id = #{userId}
+            </if>
+            <if test="status != null">
+                and status = #{status}
+            </if>
+            <if test="phone != null and phone != ''">
+                and phone = #{phone}
+            </if>
+            <if test="number != null and number != ''">
+                and number = #{number}
+            </if>
+            <if test="beginTime != null and endTime != null">
+                and (order_time between #{beginTime} and #{endTime})
+            </if>
+        </where>
+    </select>
+
+    <select id="getStatistics" resultType="java.util.Map">
+        select
+            sum(case when status = 3 then 1 else 0 end) as confirmed,
+            sum(case when status = 4 then 1 else 0 end) as deliveryInProgress,
+            sum(case when status = 2 then 1 else 0 end) as toBeConfirmed
+        from orders
+    </select>
+
+    <select id="countByMap" resultType="java.lang.Integer">
+        select count(id) from orders
+        <where>
+            <if test="status != null">
+                and status = #{status}
+            </if>
+            <if test="begin != null">
+                and order_time &gt;= #{begin}
+            </if>
+            <if test="end != null">
+                and order_time &lt;= #{end}
+            </if>
+        </where>
+    </select>
+
+    <select id="sumByMap" resultType="java.lang.Double">
+        select sum(amount) from orders
+        <where>
+            <if test="status != null">
+                and status = #{status}
+            </if>
+            <if test="begin != null">
+                and order_time &gt;= #{begin}
+            </if>
+            <if test="end != null">
+                and order_time &lt;= #{end}
+            </if>
+        </where>
+    </select>
+
+    <select id="getTurnoverStatistics" resultType="java.util.Map">
+        select
+            datediff(date(order_time), #{begin}) as indexes,
+            sum(amount) as total_sales
+        from orders
+        where status = 5 and
+              date(order_time) between #{begin} and #{end}
+        group by indexes
+    </select>
+
+    <select id="getOrderStatistics" resultType="java.util.Map">
+        select
+            datediff(date(order_time), #{begin}) as indexes,
+            count(id) as total_orders
+        from orders
+        where date(order_time) between #{begin} and #{end}
+        <if test="status != null">
+            and status = #{status}
+        </if>
+        group by indexes
+    </select>
+
+    <select id="getTop100Dishes" resultType="com.sky.dto.GoodsSalesDTO">
+        select
+            od.name as name,
+            sum(od.number) as number
+        from
+            order_detail od left join orders o on od.order_id = o.id
+        where o.order_time between #{begin} and #{end}
+            and o.status = 5
+        group by name
+        order by number desc
+        limit 0, 10;
+    </select>
+</mapper>

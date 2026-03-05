@@ -1,0 +1,78 @@
+server:
+  port: 8080
+
+spring:
+  profiles:
+    active: dev
+  main:
+    allow-circular-references: true
+  datasource:
+    druid:
+      driver-class-name: ${sky.datasource.driver-class-name}
+      url: jdbc:mysql://${sky.datasource.host}:${sky.datasource.port}/${sky.datasource.database}?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&useSSL=false&allowPublicKeyRetrieval=true
+      username: ${sky.datasource.username}
+      password: ${sky.datasource.password}
+  redis:
+    host: ${sky.redis.host}
+    port: ${sky.redis.port}
+    password: ${sky.redis.password}
+    database: ${sky.redis.database}
+
+mybatis:
+  #mapper配置文件
+  mapper-locations: classpath:mapper/*.xml
+  type-aliases-package: com.sky.entity
+  configuration:
+    #开启驼峰命名
+    map-underscore-to-camel-case: true
+
+logging:
+  level:
+    com:
+      sky:
+        mapper: debug
+        service: info
+        controller: info
+
+sky:
+  jwt:
+    # 以下是管理端的访问令牌设置
+    # 设置jwt签名加密时使用的秘钥
+    admin-secret-key: itcast
+    # 设置jwt过期时间
+    # admin-ttl: 7200000
+    # TODO 测试用，生产环境将此值设置为2周，部署时取消
+    admin_ttl: 1209600000
+    # 设置前端传递过来的令牌名称
+    admin-token-name: token
+
+    # 以下是用户端的访问令牌设置
+    user-secret-key: itheima
+    # user-ttl: 7200000
+    # TODO 测试用，生产环境将此值设置为2周，部署时取消
+    user-ttl: 1209600000
+    user-token-name: authentication
+  alioss:
+    endpoint: ${sky.alioss.endpoint}
+    bucket-name: ${sky.alioss.bucket-name}
+    access-key-id: ${sky.alioss.access-key}
+    access-key-secret: ${sky.alioss.secret-key}
+  wechat:
+    appid: ${sky.wechat.appid}
+    secret: ${sky.wechat.secret}
+    # 微信支付相关配置--演示用，实际不起作用（需要申请商户号）
+    mchid: ${sky.wechat.mchid}
+    mchSerialNo: ${sky.wechat.mchSerialNo}
+    privateKeyFilePath: ${sky.wechat.privateKeyFilePath}
+    apiV3Key: ${sky.wechat.apiV3Key}
+    weChatPayCertFilePath: ${sky.wechat.weChatPayCertFilePath}
+    notifyUrl: ${sky.wechat.notifyUrl}
+    refundNotifyUrl: ${sky.wechat.refundNotifyUrl}
+  amap:
+    key: ${sky.amap.key}
+    geo-url: ${sky.amap.geo-url}
+    distance-url: ${sky.amap.distance-url}
+    output: json
+  shop:
+    address: ${sky.amap.address}
+    distance-threshold: ${sky.shop.distance-threshold}
